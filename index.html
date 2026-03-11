@@ -1,23 +1,1669 @@
- <!doctypehtml>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<title>JARBIS Homepage</title>
-<style>
-* {margin: 0; padding:0; box-sizing:border-box;}
-form { background:#000; padding:3px;position:fixed; bottom: 0;width: 100%;}
-form input{ border:0;padding: 10px;width:90%;margin-right:.5%;}
-form button {width:9%; background: rgb(130,224,255);border:none; padding:10px;}
-#messages { list-style-type:none; margin: 0;padding:0;}
-#messages li { padding:5px 10px;}
-#messages li:nth-child(odd) { background: #eee; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARBIS - 차량 SW 개발 및 프로세스 자동화 솔루션</title>
+    <meta name="description" content="JARBIS(자비스) - 복잡한 차량 소프트웨어를 쉽고 빠르게. 차량용 SW 개발과 프로세스를 자동화하는 솔루션입니다.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* ===== Reset & Base ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-card: #161616;
+            --accent: #00d4ff;
+            --accent-dark: #00287a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --border: #222222;
+            --gradient-accent: linear-gradient(135deg, #00d4ff, #00287a);
+            --nav-height: 72px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: var(--nav-height);
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .section-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: clamp(28px, 4vw, 42px);
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 20px;
+        }
+
+        .section-desc {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            line-height: 1.8;
+        }
+
+        /* ===== Animations ===== */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-up.delay-1 { transition-delay: 0.1s; }
+        .fade-up.delay-2 { transition-delay: 0.2s; }
+        .fade-up.delay-3 { transition-delay: 0.3s; }
+        .fade-up.delay-4 { transition-delay: 0.4s; }
+
+        /* ===== Navigation ===== */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            z-index: 1000;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .nav.scrolled {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 1px 0 var(--border);
+        }
+
+        .nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .nav-logo {
+            height: 36px;
+            width: auto;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 36px;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--text-primary);
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            padding: 10px 24px;
+            background: var(--gradient-accent);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary) !important;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .nav-cta::after {
+            display: none !important;
+        }
+
+        .nav-cta:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Hamburger */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 4px;
+            background: none;
+            border: none;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: var(--text-primary);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* ===== Hero Section ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0, 40, 122, 0.15) 0%, transparent 70%),
+                radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.05) 0%, transparent 50%);
+        }
+
+        .hero-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent);
+        }
+
+        .hero-content {
+            position: relative;
+            text-align: center;
+            max-width: 860px;
+            padding: 0 24px;
+        }
+
+        .hero-logo {
+            width: 180px;
+            height: auto;
+            margin: 0 auto 40px;
+            filter: brightness(0) invert(1);
+            animation: heroLogoIn 1s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes heroLogoIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .hero-typing {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(14px, 2vw, 18px);
+            font-weight: 500;
+            color: var(--accent);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            min-height: 28px;
+        }
+
+        .hero-typing .cursor {
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .hero h1 {
+            font-size: clamp(32px, 5vw, 56px);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            animation: fadeInUp 1s ease 0.5s forwards;
+            opacity: 0;
+        }
+
+        .hero h1 .highlight {
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            font-size: clamp(16px, 2vw, 18px);
+            color: var(--text-secondary);
+            margin-bottom: 48px;
+            line-height: 1.8;
+            animation: fadeInUp 1s ease 0.7s forwards;
+            opacity: 0;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease 0.9s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-primary {
+            padding: 16px 36px;
+            background: var(--gradient-accent);
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            padding: 16px 36px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: border-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .hero-scroll {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s ease infinite;
+        }
+
+        .hero-scroll i {
+            font-size: 20px;
+            color: var(--text-muted);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        /* ===== Problem Section ===== */
+        .problem {
+            padding: 120px 0;
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .problem-visual {
+            position: relative;
+            height: 400px;
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .problem-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 20px;
+            height: 220px;
+            padding: 0 40px;
+        }
+
+        .problem-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .problem-bar-fill {
+            width: 48px;
+            border-radius: 8px 8px 0 0;
+            background: var(--gradient-accent);
+            transition: height 1s ease;
+        }
+
+        .problem-bar-fill.red {
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+        }
+
+        .problem-bar span {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .problem-text .section-desc {
+            margin-bottom: 32px;
+        }
+
+        .problem-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .problem-stat {
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .problem-stat .num {
+            font-family: 'Inter', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: #ff4757;
+            margin-bottom: 4px;
+        }
+
+        .problem-stat .label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* ===== Solution Section ===== */
+        .solution {
+            padding: 120px 0;
+            background: var(--bg-secondary);
+        }
+
+        .solution-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .solution-header .section-desc {
+            margin: 0 auto;
+        }
+
+        .solution-values {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 80px;
+        }
+
+        .value-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px 28px;
+            text-align: center;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .value-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-accent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .value-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 212, 255, 0.2);
+        }
+
+        .value-card:hover::before {
+            opacity: 1;
+        }
+
+        .value-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: rgba(0, 212, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .value-icon i {
+            font-size: 24px;
+            color: var(--accent);
+        }
+
+        .value-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .value-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ===== Core Features (4 Tools) ===== */
+        .core-features {
+            padding: 120px 0;
+        }
+
+        .core-features-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .core-features-header .section-desc {
+            margin: 0 auto;
+        }
+
+        .pipeline {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .pipeline::before {
+            content: '';
+            position: absolute;
+            top: 60px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+            opacity: 0.3;
+            z-index: 0;
+        }
+
+        .pipeline-step {
+            position: relative;
+            z-index: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: center;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .pipeline-step:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .pipeline-num {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .pipeline-icon {
+            font-size: 28px;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .pipeline-step h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .pipeline-step p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .pipeline-arrow {
+            display: none;
+        }
+
+        /* ===== Results / Stats ===== */
+        .results {
+            padding: 120px 0;
+            background: var(--bg-secondary);
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .results-header .section-desc {
+            margin: 0 auto;
+        }
+
+        .results-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+            margin-bottom: 80px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .stat-number {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(36px, 4vw, 48px);
+            font-weight: 800;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* POC Results */
+        .poc-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: start;
+        }
+
+        .poc-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px;
+        }
+
+        .poc-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .poc-card h3 i {
+            color: var(--accent);
+        }
+
+        .poc-company {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .poc-company:last-child {
+            border-bottom: none;
+        }
+
+        .poc-company .name {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .poc-company .result {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .poc-quote {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .poc-quote:last-child {
+            border-bottom: none;
+        }
+
+        .poc-quote p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .poc-quote .source {
+            font-size: 13px;
+            color: var(--accent);
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        /* ===== Competitive Section ===== */
+        .competitive {
+            padding: 120px 0;
+            background: var(--bg-secondary);
+        }
+
+        .competitive-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .competitive-header .section-desc {
+            margin: 0 auto;
+        }
+
+        .competitive-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .competitive-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px 28px;
+            text-align: center;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .competitive-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 212, 255, 0.2);
+        }
+
+        .competitive-card i {
+            font-size: 32px;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .competitive-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .competitive-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ===== Contact Section ===== */
+        .contact {
+            padding: 120px 0;
+            background: var(--bg-secondary);
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .contact-info .section-desc {
+            margin-bottom: 8px;
+        }
+
+        .contact-items {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .contact-item {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .contact-item-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(0, 212, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .contact-item-icon i {
+            font-size: 18px;
+            color: var(--accent);
+        }
+
+        .contact-item h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .contact-item p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 14px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 140px;
+        }
+
+        .form-submit {
+            padding: 16px 36px;
+            background: var(--gradient-accent);
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            align-self: flex-start;
+        }
+
+        .form-submit:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            padding: 60px 0 40px;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-top {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 48px;
+        }
+
+        .footer-brand img {
+            height: 32px;
+            width: auto;
+            filter: brightness(0) invert(1);
+            margin-bottom: 16px;
+        }
+
+        .footer-brand p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            max-width: 280px;
+        }
+
+        .footer-col h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-col a {
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .footer-col a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .footer-social a {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .footer-social a:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .footer-bottom {
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-bottom p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* ===== Mobile Menu ===== */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: var(--nav-height);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 10, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 999;
+            padding: 40px 24px;
+        }
+
+        .mobile-menu.open {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mobile-menu a {
+            font-size: 18px;
+            font-weight: 500;
+            padding: 16px 0;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            transition: color 0.3s ease;
+        }
+
+        .mobile-menu a:hover {
+            color: var(--text-primary);
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 1024px) {
+            .pipeline {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pipeline::before {
+                display: none;
+            }
+
+            .results-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .solution-values {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .competitive-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-top {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .hero-logo {
+                width: 140px;
+            }
+
+            .problem-grid {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+
+            .problem-visual {
+                height: 300px;
+            }
+
+            .solution-values,
+            .competitive-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline {
+                grid-template-columns: 1fr;
+            }
+
+            .results-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .poc-section {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-top {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .results-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .problem-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn-primary, .btn-outline {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
-<ul id="messages"></ul>
-<formid="form"action="">
-<input id="input" autocomplete="off" /><button>Send</button>
-</form>
-<scriptsrc="/socket.io/socket.io.js"></script>
-<scriptsrc="chat.js"></script>
+
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <div class="container">
+            <a href="#hero">
+                <img src="[자비스]Logo.svg" alt="JARBIS" class="nav-logo">
+            </a>
+            <ul class="nav-links">
+                <li><a href="#problem">문제정의</a></li>
+                <li><a href="#solution">솔루션</a></li>
+                <li><a href="#core-features">핵심기능</a></li>
+                <li><a href="#results">성과</a></li>
+                <li><a href="#competitive">경쟁력</a></li>
+                <li><a href="#contact" class="nav-cta">문의하기</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" aria-label="메뉴 열기">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#problem">문제정의</a>
+        <a href="#solution">솔루션</a>
+        <a href="#core-features">핵심기능</a>
+        <a href="#results">성과</a>
+        <a href="#competitive">경쟁력</a>
+        <a href="#contact">문의하기</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-grid"></div>
+        <div class="hero-content">
+            <img src="[자비스]Logo.svg" alt="JARBIS" class="hero-logo">
+            <div class="hero-typing" id="heroTyping"></div>
+            <h1>복잡한 차량 SW를<br><span class="highlight">쉽고 빠르게</span> 개발하다</h1>
+            <p class="hero-sub">
+                차량용 소프트웨어 개발과 프로세스를 자동화하는 솔루션<br>
+                A-SPICE, AUTOSAR 국제표준 기반 개발을 하나의 툴로 지원합니다.
+            </p>
+            <div class="hero-buttons">
+                <a href="#solution" class="btn-primary">솔루션 알아보기</a>
+                <a href="#contact" class="btn-outline">무료 상담 신청</a>
+            </div>
+        </div>
+        <div class="hero-scroll">
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="problem" id="problem">
+        <div class="container">
+            <div class="problem-grid">
+                <div class="problem-visual fade-up">
+                    <div class="problem-chart">
+                        <div class="problem-bar">
+                            <div class="problem-bar-fill" style="height: 80px;"></div>
+                            <span>SW 복잡도</span>
+                        </div>
+                        <div class="problem-bar">
+                            <div class="problem-bar-fill red" style="height: 160px;"></div>
+                            <span>리콜 증가</span>
+                        </div>
+                        <div class="problem-bar">
+                            <div class="problem-bar-fill" style="height: 60px;"></div>
+                            <span>개발 역량</span>
+                        </div>
+                        <div class="problem-bar">
+                            <div class="problem-bar-fill red" style="height: 140px;"></div>
+                            <span>비용 증가</span>
+                        </div>
+                        <div class="problem-bar">
+                            <div class="problem-bar-fill red" style="height: 180px;"></div>
+                            <span>공수 +60%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="problem-text">
+                    <div class="section-label fade-up">Problem</div>
+                    <h2 class="section-title fade-up delay-1">차량 SW 품질 문제,<br>더 이상 방치할 수 없습니다</h2>
+                    <p class="section-desc fade-up delay-2">
+                        차량 기능이 증가하며 소프트웨어 역할이 확대되고 있지만,
+                        SW 복잡도 증가에 비해 개발 역량은 이를 따라가지 못하고 있습니다.
+                        국제표준(A-SPICE, AUTOSAR) 적용으로 개발 시간과 복잡도는 더욱 증가합니다.
+                    </p>
+                    <div class="problem-stats fade-up delay-3">
+                        <div class="problem-stat">
+                            <div class="num">50%+</div>
+                            <div class="label">전체 리콜 중 SW 문제 비율</div>
+                        </div>
+                        <div class="problem-stat">
+                            <div class="num">60%</div>
+                            <div class="label">표준 적용 시 비용 증가율</div>
+                        </div>
+                        <div class="problem-stat">
+                            <div class="num">10,000건+</div>
+                            <div class="label">표준 기반 관리 항목</div>
+                        </div>
+                        <div class="problem-stat">
+                            <div class="num">+3개월</div>
+                            <div class="label">추가 소요 개발 기간</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section class="solution" id="solution">
+        <div class="container">
+            <div class="solution-header">
+                <div class="section-label fade-up">Solution</div>
+                <h2 class="section-title fade-up delay-1">자비스 자동화 솔루션으로<br>SW 품질 향상과 비용 절감을 동시에</h2>
+                <p class="section-desc fade-up delay-2">
+                    개발과 프로세스 준수를 자동화하여 쉽고 빠르게 차량 SW를 개발할 수 있습니다.
+                </p>
+            </div>
+            <div class="solution-values">
+                <div class="value-card fade-up delay-1">
+                    <div class="value-icon"><i class="fa-solid fa-clock"></i></div>
+                    <h3>SW 개발시간 단축</h3>
+                    <p>표준화되지 않은 방식을 요구사항/설계 작성 툴을 통해 표준화하여 개발 시간을 대폭 줄입니다.</p>
+                </div>
+                <div class="value-card fade-up delay-2">
+                    <div class="value-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <h3>SW 복잡도 해소</h3>
+                    <p>핸드코딩에서 기능/통합 코드를 자동생성으로 변경하여 복잡도를 획기적으로 줄입니다.</p>
+                </div>
+                <div class="value-card fade-up delay-3">
+                    <div class="value-icon"><i class="fa-solid fa-server"></i></div>
+                    <h3>인력 의존 탈피</h3>
+                    <p>하나의 통합 툴로 체계적인 시스템을 구축하여 특정 개인에 의존하는 환경을 해소합니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Features Section -->
+    <section class="core-features" id="core-features">
+        <div class="container">
+            <div class="core-features-header">
+                <div class="section-label fade-up">Core Features</div>
+                <h2 class="section-title fade-up delay-1">OEM 요구사항 접수부터 납품까지<br>전체 프로세스를 자동화</h2>
+                <p class="section-desc fade-up delay-2">
+                    사양 작성부터 검증까지 4가지 핵심 도구가 전 과정을 지원합니다.
+                </p>
+            </div>
+            <div class="pipeline">
+                <div class="pipeline-step fade-up delay-1">
+                    <div class="pipeline-num">1</div>
+                    <div class="pipeline-icon"><i class="fa-solid fa-file-lines"></i></div>
+                    <h3>요구사항 작성 툴</h3>
+                    <p>OEM 요구사항을 자비스 양식에 맞게 입력하면, 나머지 요구사항을 자동으로 작성합니다.</p>
+                </div>
+                <div class="pipeline-step fade-up delay-2">
+                    <div class="pipeline-num">2</div>
+                    <div class="pipeline-icon"><i class="fa-solid fa-drafting-compass"></i></div>
+                    <h3>설계 작성 툴</h3>
+                    <p>요구사항에 맞는 아키텍처를 설계하고 표준에 부합하는 설계 문서를 생성합니다.</p>
+                </div>
+                <div class="pipeline-step fade-up delay-3">
+                    <div class="pipeline-num">3</div>
+                    <div class="pipeline-icon"><i class="fa-solid fa-gears"></i></div>
+                    <h3>기능/통합 자동생성 엔진</h3>
+                    <p>HW 제어 설정, 코드, 컴포넌트를 자동으로 생성하여 핸드코딩 없이 개발합니다.</p>
+                </div>
+                <div class="pipeline-step fade-up delay-4">
+                    <div class="pipeline-num">4</div>
+                    <div class="pipeline-icon"><i class="fa-solid fa-vial"></i></div>
+                    <h3>단위 검증 자동생성 엔진</h3>
+                    <p>로직/HW 제어 컴포넌트 단위의 검증 코드를 자동 생성하여 품질을 보장합니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results" id="results">
+        <div class="container">
+            <div class="results-header">
+                <div class="section-label fade-up">Proven Results</div>
+                <h2 class="section-title fade-up delay-1">POC로 검증된 실질적 성과</h2>
+                <p class="section-desc fade-up delay-2">
+                    D사, P사, K사 등 실제 Tier2 업체와 POC를 수행하여 성능을 입증했습니다.
+                </p>
+            </div>
+
+            <div class="results-stats">
+                <div class="stat-item fade-up delay-1">
+                    <div class="stat-number" data-target="53" data-suffix="%+">0</div>
+                    <div class="stat-label">개발 기간 단축</div>
+                </div>
+                <div class="stat-item fade-up delay-2">
+                    <div class="stat-number" data-target="50" data-suffix="%+">0</div>
+                    <div class="stat-label">비용 절감</div>
+                </div>
+                <div class="stat-item fade-up delay-3">
+                    <div class="stat-number" data-target="80" data-suffix="개">0</div>
+                    <div class="stat-label">인터뷰 Tier2 업체</div>
+                </div>
+                <div class="stat-item fade-up delay-4">
+                    <div class="stat-number" data-target="6" data-suffix="년+">0</div>
+                    <div class="stat-label">경쟁사 대비 기술 격차</div>
+                </div>
+            </div>
+
+            <div class="poc-section">
+                <div class="poc-card fade-up delay-1">
+                    <h3><i class="fa-solid fa-chart-bar"></i> POC 검증 결과</h3>
+                    <div class="poc-company">
+                        <span class="name">D사</span>
+                        <span class="result">53% 이상 기간 단축</span>
+                    </div>
+                    <div class="poc-company">
+                        <span class="name">P사</span>
+                        <span class="result">53% 이상 기간 단축</span>
+                    </div>
+                    <div class="poc-company">
+                        <span class="name">K사</span>
+                        <span class="result">53% 이상 기간 단축</span>
+                    </div>
+                    <div class="poc-company">
+                        <span class="name">기능/신뢰성 검증</span>
+                        <span class="result">전 업체 통과</span>
+                    </div>
+                </div>
+                <div class="poc-card fade-up delay-2">
+                    <h3><i class="fa-solid fa-quote-left"></i> 고객 평가</h3>
+                    <div class="poc-quote">
+                        <p>"복잡하고 어려운 개발을 자동화하여 로직 개발에 집중할 수 있다."</p>
+                        <span class="source">- D사</span>
+                    </div>
+                    <div class="poc-quote">
+                        <p>"자동화로 휴먼 에러 감소와 SW 품질이 향상될 것이다."</p>
+                        <span class="source">- P사 / K사</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Competitive Section -->
+    <section class="competitive" id="competitive">
+        <div class="container">
+            <div class="competitive-header">
+                <div class="section-label fade-up">Competitive Edge</div>
+                <h2 class="section-title fade-up delay-1">경쟁사 대비 압도적 경쟁력</h2>
+                <p class="section-desc fade-up delay-2">
+                    필수 기술을 모두 커버하고, 직접 경쟁자가 없는 독보적인 비즈니스 구조를 갖추고 있습니다.
+                </p>
+            </div>
+            <div class="competitive-grid">
+                <div class="competitive-card fade-up delay-1">
+                    <i class="fa-solid fa-won-sign"></i>
+                    <h3>낮은 도입 비용</h3>
+                    <p>경쟁사 대비 도입 비용이 낮아 Tier2 업체의 진입 장벽을 최소화합니다. 초기 비용을 줄이고 3억원의 비용 절감 효과를 제공합니다.</p>
+                </div>
+                <div class="competitive-card fade-up delay-2">
+                    <i class="fa-solid fa-cube"></i>
+                    <h3>올인원 솔루션</h3>
+                    <p>경쟁사는 표준 준수에 추가 툴이 필요하지만, 자비스는 하나의 툴로 A-SPICE, AUTOSAR 등 모든 표준을 지원합니다.</p>
+                </div>
+                <div class="competitive-card fade-up delay-3">
+                    <i class="fa-solid fa-bolt"></i>
+                    <h3>30%+ 높은 생산성</h3>
+                    <p>개발과 프로세스 자동화 부분에서 경쟁사 대비 30% 이상 높은 효율을 달성합니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <div>
+                        <div class="section-label fade-up">Contact</div>
+                        <h2 class="section-title fade-up delay-1">도입 상담을<br>시작해 볼까요?</h2>
+                        <p class="section-desc fade-up delay-2">
+                            차량 SW 개발의 효율화를 원하신다면 편하게 연락 주세요.
+                            자비스 솔루션으로 최적의 방안을 제안해 드립니다.
+                        </p>
+                    </div>
+                    <div class="contact-items fade-up delay-3">
+                        <div class="contact-item">
+                            <div class="contact-item-icon"><i class="fa-solid fa-envelope"></i></div>
+                            <div>
+                                <h4>이메일</h4>
+                                <p>contact@jarbis.co.kr</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-item-icon"><i class="fa-solid fa-phone"></i></div>
+                            <div>
+                                <h4>전화</h4>
+                                <p>02-1234-5678</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-item-icon"><i class="fa-solid fa-location-dot"></i></div>
+                            <div>
+                                <h4>주소</h4>
+                                <p>경기도 의왕시 안양판교로 82 포일어울림센터 707호</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <form class="contact-form fade-up delay-2" onsubmit="handleSubmit(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">이름</label>
+                            <input type="text" id="name" placeholder="홍길동" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="company">회사명</label>
+                            <input type="text" id="company" placeholder="(주)회사명">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">이메일</label>
+                            <input type="email" id="email" placeholder="example@company.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">연락처</label>
+                            <input type="tel" id="phone" placeholder="010-0000-0000">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">문의 내용</label>
+                        <textarea id="message" placeholder="솔루션 도입, POC 요청 등 자유롭게 작성해 주세요." required></textarea>
+                    </div>
+                    <button type="submit" class="form-submit">도입 문의하기 <i class="fa-solid fa-arrow-right" style="margin-left:8px"></i></button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <img src="[자비스]Logo.svg" alt="JARBIS">
+                    <p>차량 SW 개발과 프로세스를 자동화하는 솔루션, 자비스입니다. 쉽고 빠른 차량 SW 개발을 지원합니다.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>바로가기</h4>
+                    <ul>
+                        <li><a href="#problem">문제정의</a></li>
+                        <li><a href="#solution">솔루션</a></li>
+                        <li><a href="#core-features">핵심기능</a></li>
+                        <li><a href="#results">성과</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>정보</h4>
+                    <ul>
+                        <li><a href="#competitive">경쟁력</a></li>
+                        <li><a href="#contact">문의하기</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>소셜 미디어</h4>
+                    <div class="footer-social">
+                        <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 JARBIS. All rights reserved.</p>
+                <p>Automotive SW Automation Solution</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ===== Typing Animation =====
+        (function() {
+            const phrases = [
+                'AUTOMOTIVE SW AUTOMATION',
+                'A-SPICE & AUTOSAR COMPLIANCE',
+                '50%+ COST REDUCTION',
+                'VEHICLE SW MADE EASY'
+            ];
+            const el = document.getElementById('heroTyping');
+            let phraseIdx = 0, charIdx = 0, deleting = false;
+
+            function type() {
+                const current = phrases[phraseIdx];
+                if (deleting) {
+                    el.innerHTML = current.substring(0, charIdx - 1) + '<span class="cursor">|</span>';
+                    charIdx--;
+                    if (charIdx === 0) {
+                        deleting = false;
+                        phraseIdx = (phraseIdx + 1) % phrases.length;
+                        setTimeout(type, 500);
+                        return;
+                    }
+                    setTimeout(type, 30);
+                } else {
+                    el.innerHTML = current.substring(0, charIdx + 1) + '<span class="cursor">|</span>';
+                    charIdx++;
+                    if (charIdx === current.length) {
+                        deleting = true;
+                        setTimeout(type, 2000);
+                        return;
+                    }
+                    setTimeout(type, 80);
+                }
+            }
+            setTimeout(type, 1000);
+        })();
+
+        // ===== Scroll: Nav background =====
+        const nav = document.getElementById('nav');
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // ===== Scroll: Active nav link =====
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-links a:not(.nav-cta)');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const top = section.offsetTop - 100;
+                if (window.scrollY >= top) current = section.getAttribute('id');
+            });
+            navLinks.forEach(link => {
+                link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+            });
+        });
+
+        // ===== Intersection Observer: Fade-up =====
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+        // ===== Counter Animation =====
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const target = parseInt(el.dataset.target);
+                    const suffix = el.dataset.suffix || '+';
+                    const duration = 2000;
+                    const start = performance.now();
+
+                    function update(now) {
+                        const elapsed = now - start;
+                        const progress = Math.min(elapsed / duration, 1);
+                        const eased = 1 - Math.pow(1 - progress, 3);
+                        el.textContent = Math.floor(target * eased) + suffix;
+                        if (progress < 1) requestAnimationFrame(update);
+                    }
+                    requestAnimationFrame(update);
+                    counterObserver.unobserve(el);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.stat-number').forEach(el => counterObserver.observe(el));
+
+        // ===== Hamburger Menu =====
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            mobileMenu.classList.toggle('open');
+            document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+        });
+
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                mobileMenu.classList.remove('open');
+                document.body.style.overflow = '';
+            });
+        });
+
+        // ===== Form Submit =====
+        function handleSubmit(e) {
+            e.preventDefault();
+            alert('도입 문의가 접수되었습니다.\n빠른 시일 내에 답변 드리겠습니다.');
+            e.target.reset();
+        }
+    </script>
+
 </body>
 </html>
